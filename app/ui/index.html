@@ -262,8 +262,40 @@
     padding: 0.7rem 0.9rem;
     margin: 0.5rem 0;
   }
-  .citation { border-left: 4px solid var(--primary); }
+  a.citation {
+    display: block;
+    border-left: 4px solid var(--primary);
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.06s ease;
+  }
+  a.citation:hover, a.citation:focus-visible {
+    background: var(--info-bg);
+    border-left-color: var(--primary-dark);
+    transform: translateY(-1px);
+  }
+  a.citation:hover .citation-hint, a.citation:focus-visible .citation-hint { opacity: 1; }
   .citation strong { color: var(--primary-dark); }
+  .citation-hint {
+    float: right;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--primary-dark);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .evidence-item { scroll-margin-top: 1rem; }
+  .evidence-item:target {
+    border-color: var(--primary);
+    border-width: 2px;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    animation: citation-flash 1.6s ease-out 1;
+  }
+  @keyframes citation-flash {
+    0% { background: var(--info-bg); }
+    100% { background: var(--surface-2); }
+  }
 
   .badge {
     display: inline-block;
@@ -596,11 +628,17 @@ document.getElementById("ask-form").addEventListener("submit", async (evt) => {
       citationsDiv.textContent = "None.";
     }
     for (const c of data.citations) {
-      const div = document.createElement("div");
-      div.className = "citation";
+      const link = document.createElement("a");
+      link.className = "citation";
+      link.href = "#evidence-" + c.chunk_id;
       const statusBadge = c.doc_status === "superseded" ? '<span class="badge badge-superseded">superseded</span>' : "";
-      div.innerHTML = `<strong>[${c.tag}]</strong> ${c.file_name} — ${c.unit_label} ${statusBadge}`;
-      citationsDiv.appendChild(div);
+      link.innerHTML = `<span class="citation-hint">view source ↓</span><strong>[${c.tag}]</strong> ${c.file_name} — ${c.unit_label} ${statusBadge}`;
+      link.addEventListener("click", () => {
+        const target = document.getElementById("evidence-" + c.chunk_id);
+        const details = target && target.closest("details");
+        if (details) details.open = true;
+      });
+      citationsDiv.appendChild(link);
     }
 
     const evidenceDiv = document.getElementById("evidence");
@@ -608,6 +646,7 @@ document.getElementById("ask-form").addEventListener("submit", async (evt) => {
     for (const e of data.retrieved_evidence) {
       const div = document.createElement("div");
       div.className = "evidence-item";
+      div.id = "evidence-" + e.chunk_id;
       div.innerHTML = `<strong>${e.file_name}</strong> — ${e.unit_label}
         <div class="evidence-scores">dense=${fmt(e.dense_score)} · lexical=${fmt(e.lexical_score)} · fused=${fmt(e.fused_score)} · rerank=${fmt(e.rerank_score)}</div>
         <pre>${escapeHtml(e.text)}</pre>`;
