@@ -1,0 +1,6 @@
+Data Flow Overview
+
+Customer data flows from the ingestion API through a validation layer, then into the primary
+data store. Nightly batch jobs replicate validated records into the analytics warehouse.
+Downstream services consume from the analytics warehouse via read replicas, never directly from
+the primary store, in order to isolate production traffic from analytical query load.

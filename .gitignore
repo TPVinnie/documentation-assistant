@@ -1,0 +1,17 @@
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.venv/
+venv/
+
+# Persisted index artifacts (rebuildable from data/sample_documents via scripts/ingest.py)
+data/index/
+
+# NOTE: artifacts/*.json (evaluation results) are committed on purpose — they are a required
+# deliverable (D6), not a build cache. Re-running scripts/evaluate.py overwrites them in place.
+artifacts/*.log
+
+.DS_Store

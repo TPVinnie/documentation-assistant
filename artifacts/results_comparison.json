@@ -1,0 +1,66 @@
+{
+  "configs": [
+    "baseline",
+    "improved_a",
+    "improved_b"
+  ],
+  "by_config": {
+    "baseline": {
+      "hit_rate_at_k": 1.0,
+      "mrr": 0.9667,
+      "citation_source_coverage": 0.9,
+      "retrieval_latency_avg_ms": 107.73,
+      "retrieval_latency_p95_ms": 61.35,
+      "correct_abstention_rate": 0.2222,
+      "correct_non_fabrication_rate": 1.0,
+      "over_abstention_rate_on_answerable": 0.0588,
+      "citation_correctness": 1.0,
+      "citation_coverage": 0.8205,
+      "groundedness_lexical_overlap": 0.6012,
+      "answer_completeness_proxy": 0.597,
+      "conflict_handling_rate": 1.0,
+      "version_recency_accuracy": 0.75,
+      "end_to_end_latency_avg_ms": 21962.08,
+      "end_to_end_latency_p95_ms": 40212.48,
+      "failure_rate": 0.0233
+    },
+    "improved_a": {
+      "hit_rate_at_k": 1.0,
+      "mrr": 0.9714,
+      "citation_source_coverage": 0.9,
+      "retrieval_latency_avg_ms": 30.78,
+      "retrieval_latency_p95_ms": 47.59,
+      "correct_abstention_rate": 0.2222,
+      "correct_non_fabrication_rate": 0.8889,
+      "over_abstention_rate_on_answerable": 0.0294,
+      "citation_correctness": 1.0,
+      "citation_coverage": 0.925,
+      "groundedness_lexical_overlap": 0.6435,
+      "answer_completeness_proxy": 0.6442,
+      "conflict_handling_rate": 1.0,
+      "version_recency_accuracy": 0.5,
+      "end_to_end_latency_avg_ms": 25128.98,
+      "end_to_end_latency_p95_ms": 50753.92,
+      "failure_rate": 0.0
+    },
+    "improved_b": {
+      "hit_rate_at_k": 1.0,
+      "mrr": 0.9571,
+      "citation_source_coverage": 0.9857,
+      "retrieval_latency_avg_ms": 346.86,
+      "retrieval_latency_p95_ms": 728.09,
+      "correct_abstention_rate": 0.3333,
+      "correct_non_fabrication_rate": 0.8889,
+      "over_abstention_rate_on_answerable": 0.1176,
+      "citation_correctness": 1.0,
+      "citation_coverage": 0.9167,
+      "groundedness_lexical_overlap": 0.4509,
+      "answer_completeness_proxy": 0.5772,
+      "conflict_handling_rate": 1.0,
+      "version_recency_accuracy": 0.5,
+      "end_to_end_latency_avg_ms": 17962.95,
+      "end_to_end_latency_p95_ms": 36867.88,
+      "failure_rate": 0.0233
+    }
+  }
+}
