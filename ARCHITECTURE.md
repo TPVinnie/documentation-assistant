@@ -3,6 +3,7 @@
 ## 1. Component diagram
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "17px", "primaryColor": "#e0e7ff", "primaryTextColor": "#0f172a", "primaryBorderColor": "#3730a3", "lineColor": "#1e293b", "secondaryColor": "#ccfbf1", "secondaryTextColor": "#0f172a", "secondaryBorderColor": "#115e59", "tertiaryColor": "#fef3c7", "tertiaryTextColor": "#0f172a", "tertiaryBorderColor": "#92400e", "clusterBkg": "#f8fafc", "clusterBorder": "#475569", "edgeLabelBackground": "#ffffff", "textColor": "#0f172a"}}}%%
 flowchart TB
     subgraph Ingestion
         Parsers["parsers.py\n(PDF/DOCX/MD/TXT)"]
@@ -92,6 +93,10 @@ flowchart TB
     Runner --> RetrievalMetrics
     Runner --> AnswerMetrics
     Configs --> Runner
+
+    classDef default stroke-width:2px;
+    classDef db fill:#ccfbf1,stroke:#115e59,color:#0f172a,stroke-width:2px;
+    class VectorStore,LexicalIndex,MetadataStore db;
 ```
 
 Plain-text summary if the diagram doesn't render: **Ingestion** (parse → derive metadata → chunk →
@@ -108,6 +113,7 @@ named configurations over a labeled question set and computes metrics.
 ## 2. Request sequence: `POST /ask`
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"fontSize": "17px", "actorBkg": "#e0e7ff", "actorBorder": "#3730a3", "actorTextColor": "#0f172a", "actorLineColor": "#475569", "signalColor": "#1e293b", "signalTextColor": "#0f172a", "labelBoxBkgColor": "#e0e7ff", "labelBoxBorderColor": "#3730a3", "labelTextColor": "#0f172a", "loopTextColor": "#0f172a", "noteBkgColor": "#fef3c7", "noteBorderColor": "#92400e", "noteTextColor": "#0f172a", "activationBkgColor": "#ccfbf1", "activationBorderColor": "#115e59", "sequenceNumberColor": "#0f172a"}}}%%
 sequenceDiagram
     participant Client
     participant API as FastAPI
@@ -134,7 +140,7 @@ sequenceDiagram
     else evidence sufficient
         Gen->>Gen: build_context() (injection scan + token-budget pack)
         Gen->>LLM: generate(system_prompt, user_prompt, context_blocks)
-        LLM-->>Gen: raw answer text with [S<n>] tags
+        LLM-->>Gen: raw answer text with [S1], [S2], ... tags
         Gen->>Gen: assemble_and_validate_citations() (drop hallucinated tags)
         Gen-->>API: AnswerResult (answer, citations, evidence_quality, conflict_signal)
     end
