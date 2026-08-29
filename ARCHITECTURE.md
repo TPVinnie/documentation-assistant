@@ -141,38 +141,33 @@ configurations over a labeled question set and computes metrics.
 
 ## 2. Request sequence: `POST /ask`
 
+Retrieval's internal dense/lexical/fusion/reranking steps are the subject of diagram 1.1 and are
+folded into one note below, to keep this diagram to the participants and calls that cross a
+module boundary at the request level.
+
 ```mermaid
 sequenceDiagram
     participant Client
     participant API as FastAPI
     participant Retrieval as retrieval.pipeline
-    participant Vec as VectorStore
-    participant Lex as LexicalIndex
-    participant Rerank as reranking
     participant Gen as generation.service
     participant LLM as LLMClient
 
-    Client->>API: POST /ask {question, history, filters, config_name}
-    API->>Retrieval: retrieve(question, config, filters, history)
-    Retrieval->>Retrieval: process_query (normalize + follow-up heuristic)
-    Retrieval->>Vec: dense_search(retrieval_query, filters)
-    Retrieval->>Lex: lexical_search(retrieval_query, filters)  (if hybrid)
-    Retrieval->>Retrieval: reciprocal_rank_fusion() + superseded penalty
-    Retrieval->>Rerank: apply_reranking(fused_top)  (if enabled)
-    Rerank-->>Retrieval: reranked hits (or fused order on fallback)
-    Retrieval-->>API: RetrievalOutcome (hits + stage timings)
+    Client->>API: POST /ask
+    API->>Retrieval: retrieve(query, config, filters, history)
+    Note right of Retrieval: dense + lexical search, RRF fusion,<br/>reranking (see 1.1)
+    Retrieval-->>API: RetrievalOutcome (hits, timings)
     API->>Gen: answer_question(outcome)
     Gen->>Gen: decide_abstention(hits)
     alt insufficient evidence
-        Gen-->>API: AnswerResult (abstained=true, no LLM call)
+        Gen-->>API: AnswerResult (abstained)
     else evidence sufficient
-        Gen->>Gen: build_context() (injection scan + token-budget pack)
-        Gen->>LLM: generate(system_prompt, user_prompt, context_blocks)
-        LLM-->>Gen: raw answer text with [S1], [S2], ... tags
-        Gen->>Gen: assemble_and_validate_citations() (drop hallucinated tags)
-        Gen-->>API: AnswerResult (answer, citations, evidence_quality, conflict_signal)
+        Gen->>LLM: generate(prompt, context)
+        LLM-->>Gen: answer text with citation tags
+        Gen->>Gen: validate citations
+        Gen-->>API: AnswerResult (answer, citations)
     end
-    API-->>Client: AskResponse (answer, citations, retrieved_evidence, stage_timings_ms)
+    API-->>Client: AskResponse
 ```
 
 ## 3. Design decisions
