@@ -2,6 +2,14 @@
 
 ## 1. Component diagram
 
+Split into two diagrams — the core request-processing pipeline, and its interfaces/evaluation
+harness — rather than one large graph. Fewer crossing edges per diagram is deliberate: a single
+diagram covering all seven subgraphs proved noticeably more prone to Mermaid's own layout-engine
+edge-routing failures ("could not find a suitable point for the given distance") on GitHub than
+either half is on its own.
+
+### 1.1 Core pipeline: ingestion → indexing → retrieval → reranking → generation
+
 ```mermaid
 flowchart TB
     subgraph Ingestion
@@ -43,20 +51,6 @@ flowchart TB
         Service["service.py\n(stages 5-7)"]
     end
 
-    subgraph Interface
-        API["FastAPI (api/main.py)"]
-        UI["Static test UI (ui/index.html)"]
-        CLI["CLI scripts (ingest/ask/evaluate)"]
-    end
-
-    subgraph Evaluation
-        Dataset["dataset.py"]
-        RetrievalMetrics["retrieval_metrics.py"]
-        AnswerMetrics["answer_metrics.py"]
-        Runner["runner.py"]
-        Configs["configs.py\n(baseline/A/B)"]
-    end
-
     Parsers --> DocMeta --> Chunking --> Pipeline
     Pipeline --> Embeddings --> VectorStore
     Pipeline --> LexicalIndex
@@ -78,27 +72,10 @@ flowchart TB
     Service --> Abstention
     Service --> Conflict
 
-    API --> RetrievalPipeline
-    API --> Service
-    API --> Pipeline
-    UI --> API
-    CLI --> RetrievalPipeline
-    CLI --> Service
-    CLI --> Pipeline
-
-    Runner --> Dataset
-    Runner --> RetrievalPipeline
-    Runner --> Service
-    Runner --> RetrievalMetrics
-    Runner --> AnswerMetrics
-    Configs --> Runner
-
     classDef proc fill:#e0e7ff,stroke:#3730a3,color:#0f172a,stroke-width:2px;
     classDef db fill:#ccfbf1,stroke:#115e59,color:#0f172a,stroke-width:2px;
-    classDef iface fill:#fef3c7,stroke:#92400e,color:#0f172a,stroke-width:2px;
     class Parsers,DocMeta,Chunking,Pipeline,Embeddings,QueryProc,Dense,Lexical,Fusion,Filters,RetrievalPipeline,CrossEncoder,Fallback,InjectionGuard,ContextBuilder,Prompt,LLMClient,Citations,Abstention,Conflict,Service proc;
     class VectorStore,LexicalIndex,MetadataStore db;
-    class API,UI,CLI,Dataset,RetrievalMetrics,AnswerMetrics,Runner,Configs iface;
 ```
 
 Plain-text summary if the diagram doesn't render: **Ingestion** (parse → derive metadata → chunk →
@@ -108,9 +85,59 @@ applies metadata filters. **Reranking** re-scores the fused candidates with a cr
 falling back to the fused order if it's disabled or errors. **Generation** builds a token-budgeted,
 injection-scanned context, prompts the LLM (Ollama or a deterministic mock), and validates the
 model's citations against what was actually retrieved — gated by an **abstention** check that can
-skip generation entirely. The **API**, static **UI**, and **CLI scripts** are three thin front ends
-over the same retrieval/generation pipeline. **Evaluation** runs the same pipeline under three
-named configurations over a labeled question set and computes metrics.
+skip generation entirely.
+
+### 1.2 Interfaces and evaluation harness
+
+Both are thin callers of the same two entry points shown here (`ingestion/pipeline.py`,
+`retrieval/pipeline.py`, `generation/service.py`) — see 1.1 for what's inside them.
+
+```mermaid
+flowchart TB
+    subgraph Interface
+        API["FastAPI (api/main.py)"]
+        UI["Static test UI (ui/index.html)"]
+        CLI["CLI scripts (ingest/ask/evaluate)"]
+    end
+
+    subgraph Evaluation
+        Dataset["dataset.py"]
+        RetrievalMetrics["retrieval_metrics.py"]
+        AnswerMetrics["answer_metrics.py"]
+        Runner["runner.py"]
+        Configs["configs.py\n(baseline/A/B)"]
+    end
+
+    subgraph core["Core pipeline (see 1.1)"]
+        IngestPipeline["ingestion/pipeline.py"]
+        RetrievalPipeline["retrieval/pipeline.py\n(stages 1-4)"]
+        Service["generation/service.py\n(stages 5-7)"]
+    end
+
+    UI --> API
+    API --> RetrievalPipeline
+    API --> Service
+    API --> IngestPipeline
+    CLI --> RetrievalPipeline
+    CLI --> Service
+    CLI --> IngestPipeline
+
+    Configs --> Runner
+    Runner --> Dataset
+    Runner --> RetrievalPipeline
+    Runner --> Service
+    Runner --> RetrievalMetrics
+    Runner --> AnswerMetrics
+
+    classDef iface fill:#fef3c7,stroke:#92400e,color:#0f172a,stroke-width:2px;
+    classDef proc fill:#e0e7ff,stroke:#3730a3,color:#0f172a,stroke-width:2px;
+    class API,UI,CLI,Dataset,RetrievalMetrics,AnswerMetrics,Runner,Configs iface;
+    class IngestPipeline,RetrievalPipeline,Service proc;
+```
+
+The **API**, static **UI**, and **CLI scripts** are three thin front ends over the same
+retrieval/generation pipeline. **Evaluation** runs that same pipeline under three named
+configurations over a labeled question set and computes metrics.
 
 ## 2. Request sequence: `POST /ask`
 
