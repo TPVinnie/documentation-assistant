@@ -1,6 +1,6 @@
 # Demo Script
 
-A 15-20 minute walkthrough following the assignment's demonstration flow (§11.1). Run
+A 15-20 minute walkthrough following the project's demonstration flow (§11.1). Run
 `uvicorn app.api.main:app --reload` first and open http://localhost:8000/ui, or use
 `python scripts/ask.py "<question>" --show-evidence` for a terminal-only walkthrough.
 
