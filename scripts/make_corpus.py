@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-"""Generates the synthetic sample-document corpus used for this assignment.
+"""Generates the synthetic sample-document corpus used for this project.
 
-No real/confidential document pack was supplied for this exercise, so this
-script builds a small, clearly-labeled synthetic corpus covering the
-categories in the assignment's business scenario (policies, procedures,
+This script builds a small, clearly-labeled synthetic corpus covering the
+categories in the project's business scenario (policies, procedures,
 technical guides, release notes, architecture) with deliberate overlaps, a
 superseded-version pair, a genuine cross-document contradiction, and a
 malformed-file set for FR-02 robustness testing. Re-running this script
